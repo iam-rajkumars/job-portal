@@ -28,8 +28,8 @@ jobs:
 
       # Step 4: Run Unit Tests
       - name: Run Unit Tests
-        working-directory: ./backend
-        run: pytest
+        export PYTHONPATH=./backend
+        pytest backend/tests
 
       # Step 5: Login to Docker Hub
       - name: Docker Login

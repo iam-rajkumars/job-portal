@@ -32,7 +32,7 @@ jobs:
 
     - name: Run Unit Tests
       run: |
-        export PYTHONPATH=./backend
+        export PYTHONPATH=.
         pytest backend/tests
 
     - name: Set up Docker Buildx

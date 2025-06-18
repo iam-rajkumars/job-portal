@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-portal-backend
+  labels:
+    app: job-portal-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: job-portal-backend
+  template:
+    metadata:
+      labels:
+        app: job-portal-backend
+    spec:
+      containers:
+        - name: job-portal-backend
+          image: your-dockerhub-username/job-portal-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: ENV
+              value: "production"
+

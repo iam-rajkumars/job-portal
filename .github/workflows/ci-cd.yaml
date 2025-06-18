@@ -1,44 +1,56 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline with Kubernetes Deployment
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code from repository
-      - name: Checkout code
+      # Step 1: Checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       # Step 2: Set up Python
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: "3.10"
 
-      # Step 3: Install dependencies
-      - name: Install dependencies
+      # Step 3: Install Python Dependencies
+      - name: Install Dependencies
+        working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          pip install pytest
+          pip install -r requirements.txt
 
-      # Step 4: Run unit tests
+      # Step 4: Run Unit Tests
       - name: Run Unit Tests
-        run: |
-          pytest backend/tests
+        working-directory: ./backend
+        run: pytest
 
-      # (Optional) Step 5: Upload test results or coverage report
-      # - name: Upload test coverage report
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: test-report
-      #     path: path/to/report
+      # Step 5: Login to Docker Hub
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      # Step 6: Build Docker Image
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/job-portal-backend:latest ./backend
+
+      # Step 7: Push Docker Image
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/job-portal-backend:latest
+
+      # Step 8: Set up Kubeconfig
+      - name: Setup Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+
+      # Step 9: Deploy to Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
 
